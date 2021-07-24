@@ -97,3 +97,35 @@ Spring Boot를 서블릿/스프링 예외 처리와 오류페이지 학습
 
 1. WAS는 오류 페이지를 단순히 다시 요청만 하는 것이 아니라, 오류 정보를 `request`의 `attribute`에 추가해서 넘겨준다.
 2. 필요하면 오류 페이지에서 이렇게 전달된 오류 정보를 사용할 수 있다.
+
+## 필터와 인터셉터 그리고 서블릿이 제공하는 `DispatcherType` 이해하기
+
+   ```text
+   1. WAS(여기까지 전파) < 필터 < 서블릿 < 인터셉터 < 컨트롤러(예외발생)
+   2. WAS '/error-page/500' 다시 요청 > 필터 > 서블릿 > 인터셉터 > 컨트롤러(/error-page/500) > 뷰
+   ```
+
+1. 오류가 발생하면 오류 페이지를 출력하기 위해 WAS 내부에서 다시 한번 호출이 발생한다. 이때 필터, 서블릿, 인터셉터도 모두 다시 호출된다.
+2. 그런데 로그인 인증 체크 같은 경우를 생각해보면, 이미 한번 필터나, 인터셉터에서 로그인 체크를 완료했다.
+3. 따라서 서버 내부에서 오류 페이지를 호출한다고 해서 해당 필터나 인터셉트가 한번 더 호출되는 것은 매우 비효율적이다.
+4. 결국 클라이언트로 부터 발생한 정상 요청인지, 아니면 오류 페이지를 출력하기 위한 내부 요청인지 구분할 수 있어야 한다.
+5. 서블릿은 이런 문제를 해결하기 위해 `DispatcherType`이라는 추가 정보를 제공한다.
+
+### DispatcherType
+
+1. 필터는 이런 경우를 위해서 `dispatcherTypes` 라는 옵션을 제공한다.
+   ```java
+   log.info("dispatcherType={}", request.getDispatcherType());
+   ```
+2. 고객이 처음 요청하면 `dispatcherType=REQUEST`이다.
+3. 이렇듯 서블릿 스펙은 실제 고객이 요청한 것인지, `서버가 내부에서 오류 페이지를 요청하는 것인지 DispatcherType 으로 구분할 수 있는 방법을 제공`한다.
+    - javax.servlet.DispatcherType
+       ```java
+      public enum DispatcherType {
+         FORWARD, //서블릿에서 다른 서블릿이나 JSP(뷰 템플릿)를 호출할 때 => RequestDispatcher.forward(request, response);
+         INCLUDE, //서블릿에서 다른 서블릿이나 JSP의 결과를 포함할 때 => RequestDispatcher.include(request, response);
+         REQUEST, //클라이언트 요청
+         ASYNC, //서블릿 비동기 호출
+         ERROR //오류 요청
+      }
+       ```
