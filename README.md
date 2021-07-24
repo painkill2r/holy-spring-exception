@@ -52,4 +52,27 @@ Spring Boot를 서블릿/스프링 예외 처리와 오류페이지 학습
     - `response.sendError()`을 호출하면 `response` 내부에는 오류가 발생했다는 상태를 저장해둔다.
     - 그리고 서블릿 컨테이너는 클라이언트에게 응답하기 전에 `response`에 `sendError()`가 호출되었는지 확인한다.
     - 만약, 호출되었으면 설정한 오류 코드에 맞추어 기본 오류 페이지를 보여준다.
-   
+
+## 서블릿이 제공하는 오류 화면 기능 사용
+
+1. 서블릿 컨테이너가 제공하는 기본 예외 처리 화면은 친화적이지 않다. 따라서 서블릿이 제공하는 오류 화면 기능을 사용하여 이를 변경해서 사용해야 한다.
+2. 서블릿은 `Exception`이 발생해서 서블릿 밖으로 전달되거나, `response.sendError()`가 호출되었을 때 각각의 상황에 맞춘 오류 처리 기능을 제공한다.
+    - 이 기능을 활용하면 친절한 오류 화면을 준비해서 클라이언트에게 보여줄 수 있다.
+3. 과거에는 다음과 같이 `web.xml`이라는 파일에 오류 화면을 등록했다.
+   ```xml
+   <web-app>
+       <error-page> 
+           <error-code>404</error-code> 
+           <location>/error-page/404.html</location> 
+       </error-page> 
+       <error-page> 
+           <error-code>500</error-code> 
+           <location>/error-page/500.html</location> 
+       </error-page> 
+       <error-page> 
+           <exception-type>java.lang.RuntimeException</exception-type> 
+           <location>/error-page/500.html</location> 
+       </error-page> 
+   </web-app>
+   ```
+4. 여기서는 스프링 부트를 통해서 서블릿 컨테이너를 실행하기 때문에, 스프링 부터가 제공하는 기능을 사용해서 서블릿 오류 페이지를 등록하면 된다. 
