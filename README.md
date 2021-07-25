@@ -155,3 +155,33 @@ Spring Boot를 서블릿/스프링 예외 처리와 오류페이지 학습
     - 인터셉터는 경로 정보로 중복 호출 제거
         - excludePathPatterns("/error-page/**")
 
+## 스프링 부트 오류 페이지
+
+1. 기존에는 `WebServerCustomizer`를 만들고, 예외 종류에 따라서 `ErrorPage`를 추가하고, 예외 처리용 컨트롤러 `ErrorPageController`를 만들었다.
+2. 그러나 스프링 부트에서는 이런 과정을 모두 기본으로 제공한다.
+    - `ErrorPage`를 자동으로 등록한다. 이때 `/error`라는 경로로 기본 오류 페이지를 설정한다.
+        - new ErrorPage("/error"), 상태 코드와 예외를 설정하지 않으면 기본 오류 페이지로 사용된다.
+        - 서블릿 밖으로 예외가 발생하거나, response.sendError(...)가 호출되면 모든 오류는 /error를 호출하게 된다.
+    - `BasicErrorController`라는 스프링 컨트롤러를 자동으로 등록한다.
+        - ErrorPage에서 등록한 /error를 매핑해서 처리하는 컨트롤러이다.
+3. `ErrorMvcAutoConfiguration이라는 클래스가 오류 페이지를 자동으로 등록하는 역할을 한다.`
+
+### 개발자는 오류 페이지만 등록
+
+1. 스프링 부트가 제공하는 `BasicErrorController`는 기본적인 로직이 모두 개발되어 있다.
+2. 개발자는 오류 페이지 화면만 `BasicErrorController`가 제공하는 룰과 우선순위에 따라서 등록하면 된다.
+    - HTML이면 정적 리소스 경로에 오류 페이지 파일을 만들어서 넣으면 된다.
+    - 뷰 템플릿을 사용해서 동적으로 오류 화면을 만들고 싶으면 뷰 템플릿 경로에 오류 페이지 파일을 만들어서 넣으면 된다.
+3. BasicErrorController의 뷰 선택 처리 순서
+    - 뷰 템플릿이 정적 리소스보다 우선순위가 높고, 404, 500처럼 구체적인 것이 5xx처럼 덜 구체적인 것보다 우선 순위가 높다.(4xx, 5xx라고 하면 400대, 500대 오류를 처리한다.)
+    - 뷰 템플릿
+        - resources/templates/error/500.html
+        - resources/templates/error/5xx.html
+    - 정적 리소스(static, public)
+        - resources/static/error/400.html
+        - resources/static/error/404.html
+        - resources/static/error/4xx.html
+    - 적용 대상이 없을 때 뷰 이름(error)
+        - resources/templates/error.html
+   
+   

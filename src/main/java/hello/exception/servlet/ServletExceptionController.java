@@ -21,6 +21,11 @@ public class ServletExceptionController {
         throw new RuntimeException("예외 발생!");
     }
 
+    @GetMapping("/error-400")
+    public void error400(HttpServletResponse response) throws IOException {
+        response.sendError(400, "400 오류!");
+    }
+
     /**
      * HttpServletResponse의 sendError() 메소드를 사용해서 404 HTTP 상태코 드와 메시지를 반환
      *
