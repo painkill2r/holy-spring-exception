@@ -219,3 +219,17 @@ Spring Boot를 서블릿/스프링 예외 처리와 오류페이지 학습
         - on_param: 파라미터가 있을 때 사용(파라미터가 있으면 해당 정보를 노출한다.)
 3. 실무에서는 이것들을 노출하면 안된다!
     - 사용자에게는 이쁜 오류 화면과 고객이 이해할 수 있는 간단한 오류 메시지를 보여주고, 오류는 서버에 로그로 남겨서 로그로 확인해야 한다.
+
+### 스프링 부트 오류 관련 옵션
+
+```properties
+#오류 처리 화면을 못 찾을 시, 스프링 whitelabel 오류 페이지 적용
+server.error.whitelabel.enabled=true
+
+#오류 페이지 경로, 스프링이 자동 등록하는 서블릿 글로벌 오류 페이지 경로와 BasicErrorController 오류 컨트롤러 경로에 함께 사용된다.
+server.error.path=/error
+```
+
+1. (참고)확장 포인트
+    - 에러 공통 처리 컨트롤러의 기능을 변경하고 싶으면 `ErrorController` 인터페이스를 상속 받아서 구현하거나
+    - `BasicErrorController`를 상속 받아서 기능을 추가하면 된다.
