@@ -157,6 +157,8 @@ Spring Boot를 서블릿/스프링 예외 처리와 오류페이지 학습
 
 ## 스프링 부트 오류 페이지
 
+스프링 부트가 기본으로 제공하는 오류 페이지를 활용하면 오류 페이지와 관련된 대부분의 문제는 손쉽게 해결할 수 있다.
+
 1. 기존에는 `WebServerCustomizer`를 만들고, 예외 종류에 따라서 `ErrorPage`를 추가하고, 예외 처리용 컨트롤러 `ErrorPageController`를 만들었다.
 2. 그러나 스프링 부트에서는 이런 과정을 모두 기본으로 제공한다.
     - `ErrorPage`를 자동으로 등록한다. 이때 `/error`라는 경로로 기본 오류 페이지를 설정한다.
@@ -183,5 +185,37 @@ Spring Boot를 서블릿/스프링 예외 처리와 오류페이지 학습
         - resources/static/error/4xx.html
     - 적용 대상이 없을 때 뷰 이름(error)
         - resources/templates/error.html
-   
-   
+
+### BasicErrorController가 제공하는 기본 정보들 사용하기
+
+1. BasicErrorController는 다음 정보를 Model에 담아서 뷰에 전달한다. 뷰 템플릿에서는 이 값들을 활용해서 출력할 수 있다.
+   ```text
+   * timestamp: Fri Feb 05 00:00:00 KST 2021 
+   * status: 400 * error: Bad Request 
+   * exception: org.springframework.validation.BindException 
+   * trace: 예외 trace 
+   * message: Validation failed for object='data'. Error count: 1 
+   * errors: Errors(BindingResult) 
+   * path: 클라이언트 요청 경로 (`/hello`)
+   ```
+2. 단, 오류 관련 내부 정보들을 클라이언트에게 노출하는 것은 좋지 않다. 그래서 BasicErrorController에서 다음 오류 정보를 Model에 포함할지 여부를 설정할 수 있다.
+    - application.properties 설정 추가
+      ```properties
+      #Exception 포함 여부
+      server.error.include-exception=false
+
+      #Message 포함여부
+      server.error.include-message=never
+
+      #Trace 포함 여부
+      server.error.include-stacktrace=never
+
+      #Errors 포함 여부
+      server.error.include-binding-errors=never
+      ```
+    - 기본 값이 `never`인 부분은 다음과 같이 3가지 옵션을 사용할 수 있다.
+        - never: 사용하지 않음
+        - always: 항상 사용
+        - on_param: 파라미터가 있을 때 사용(파라미터가 있으면 해당 정보를 노출한다.)
+3. 실무에서는 이것들을 노출하면 안된다!
+    - 사용자에게는 이쁜 오류 화면과 고객이 이해할 수 있는 간단한 오류 메시지를 보여주고, 오류는 서버에 로그로 남겨서 로그로 확인해야 한다.
