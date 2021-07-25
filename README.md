@@ -111,7 +111,7 @@ Spring Boot를 서블릿/스프링 예외 처리와 오류페이지 학습
 4. 결국 클라이언트로 부터 발생한 정상 요청인지, 아니면 오류 페이지를 출력하기 위한 내부 요청인지 구분할 수 있어야 한다.
 5. 서블릿은 이런 문제를 해결하기 위해 `DispatcherType`이라는 추가 정보를 제공한다.
 
-### DispatcherType
+### 필터와 DispatcherType
 
 1. 필터는 이런 경우를 위해서 `dispatcherTypes` 라는 옵션을 제공한다.
    ```java
@@ -129,3 +129,29 @@ Spring Boot를 서블릿/스프링 예외 처리와 오류페이지 학습
          ERROR //오류 요청
       }
        ```
+
+### 인터셉터
+
+1. 앞서 필터의 경우에는 필터를 등록할 때 어떤 `DispatcherType`인 경우에 필터를 적용할 지 선택할 수 있었다.
+2. 그런데 인터셉터는 서블릿이 제공하는 기능이 아니라 스프링이 제공하는 기능이기 때문에 `DispatcherType`과 무관하게 항상 호출된다.
+3. 대신에 인터셉터는 요청 경로에 따라서 추가하거나 제외하기 쉽게 되어 있기 때문에, 이러한 설정을 사용해서 오류 페이지 경로를 `excludePathPatterns()`를 사용해서 빼주면 된다.
+
+### 전체 흐름 정리
+
+1. 정상 요청
+   ```text
+   WAS("/hello", dispatcherType=REQUEST) > 필터 > 서블릿 > 인터셉터 > 컨트롤러("/hello") > 뷰
+   ```
+
+2. 오류 요청
+   ```text
+   1. WAS("/error-ex", dispatcherType=REQUEST) > 필터 > 서블릿 > 인터셉터 > 컨트롤러
+   2. WAS(여기까지 전파) < 필터 < 서블릿 < 인터셉터 < 컨트롤러(예외 발생)
+   3. WAS 오류 페이지 확인
+   4. WAS("/error-page/500", dispatcherType=ERROR) > 필터(X) > 서블릿 > 인터셉터(X) > 컨트롤러("/error-page/500") > 뷰
+   ```
+    - 필터는 `DispatcherType`으로 중복 호출 제거
+        - dispatcheType=REQUEST
+    - 인터셉터는 경로 정보로 중복 호출 제거
+        - excludePathPatterns("/error-page/**")
+
